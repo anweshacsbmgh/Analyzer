@@ -21,7 +21,7 @@ cutFL3 = k.BinEdges(100);
 k1 = histogram(fcsdat1(:,2),256);
 cutALL = k1.BinEdges(40);
 initIdx = find(fcsdat1(:,5)<=cutFL3 | fcsdat1(:,2)<=cutALL);
-fcsdat = fcsdat1;
+fcsdat = fcsdat1(initIdx,:);
 close
 % Classifying mono-nuclear and poly-nuclear cells
 [T,C] = kmeans(fcsdat(:,[1,3]),2); % finding mono and poly clusters in PSS vs IAS plot
@@ -325,5 +325,5 @@ disp(['Eosinophils% ',num2str(length(eosino)*100/(length(neutro)+length(projecti
     length(monocytes)+length(eosino)))]);
 disp(['NRBC% ',num2str(length(NRBC)*100/(length(neutro)+length(projectionsB)+...
     length(monocytes)+length(eosino)))]);
-% data(end+1,:)=[length(fcsdat),length(neutro)*100/length(fcsdat),length(projectionsB)*100/length(fcsdat),...
-%     length(monocytes)*100/length(fcsdat),length(eosino)*100/length(fcsdat),length(NRBC)*100/length(fcsdat)];
+cd ('/Users/anweshachaudhury/Desktop/Anwesha research/FCSfiles/WBCresults')
+save(filename(end-3:end))

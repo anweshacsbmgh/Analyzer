@@ -1,8 +1,8 @@
 clear 
 close all
 clc
-load('tropdata.mat')
-distinfo = xlsread('ChangiCompareWBC.xlsx','CompareChangiDist');
+load('/Users/anweshachaudhury/Desktop/Anwesha research/Data files/Troponindata/tropdata.mat')
+distinfo = xlsread('/Users/anweshachaudhury/Desktop/Anwesha research/Data files/Analyzers/ChangiCompareWBC.xlsx','CompareChangiDist');
 distinfo(1,:)=[];
 Safe_pat_xls = [12 13 18 22 23 29 31 33 37 40 41 54 55 56 59 60 61 68 71 75 77 79 82 88 89 93 95 100 101 104 108]'; %green markers on excel sheet
 
@@ -22,8 +22,8 @@ end
 
 %% Statistical platelets
 clear
-load('tropdata.mat')
-pltinfo=xlsread('ChangiCompareWBC.xlsx','PLTchangi');
+load('/Users/anweshachaudhury/Desktop/Anwesha research/Data files/Troponindata/tropdata.mat')
+pltinfo=xlsread('/Users/anweshachaudhury/Desktop/Anwesha research/Data files/Analyzers/ChangiCompareWBC.xlsx','PLTchangi');
 Safe_pat_xls = [12 13 18 22 23 29 31 33 37 40 41 54 55 56 59 60 61 68 71 75 77 79 82 88 89 93 95 100 101 104 108]'; %green markers on excel sheet
 pltinfo(1,:)=[];
 for i=1:length(pltinfo)

@@ -161,7 +161,7 @@ PSS1= (DSS1-DSS0)/slope+PSS0;
 
 DSS2=36;
 PSS2= (DSS2-DSS0)/slope+PSS0;
-slopeLine2 = slope*0.9;
+slopeLine2 = slope*0.8;
 yInterceptLine2 = DSS2 - slopeLine2*PSS2;
 indices = (poly(:,4) > slopeLine2*poly(:,3)+yInterceptLine2) & poly(:,3)>PSS2;
 xx=linspace(1,max(poly(:,3)),ceil(max(poly(:,3))/10));
@@ -181,7 +181,7 @@ h3 = histogram((remainingMono(:,2)),70);
 % xlabel('ALL')
 % [pks1,idx11,w,p] = findpeaks(-hfit(2).YData,'MinPeakDistance',10);
 
-[t1,c1]=kmeans(remainingMono(:,2),3,'Start',[0.6e4;1.4e4;2.1e4]);
+[t1,c1]=kmeans(remainingMono(:,2),3,'Start',[0.4e4;1.3e4;2.1e4]);
 % c2=sort(c1);
 monocyteidx = find(t1==3);
 stromaidx = find(t1==1);
@@ -190,7 +190,7 @@ monocytes = remainingMono(monocyteidx,:);
 remainingMononew = remainingMono(find(~ismember(1:length(remainingMono),[stromaidx;monocyteidx])),:);
 
 
-if length(stroma)*100/length(fcsdat)>=5 %if stoma is more than 5%
+if length(stroma)*100/length(fcsdat)>=20 %if stoma is more than 20%
     figure
     hfit = histfit((remainingMono(:,2)),100,'kernel');
     xlabel('ALL')
@@ -422,14 +422,14 @@ covL = cov(remainingMononew(:,1:5));
 covM = cov(monocytes(:,1:5));
 % disp(['The patient filename is ',filename]);
 % disp(['Total cells ',num2str(length(fcsdat))]);
-% disp(['Neutrophils% ',num2str(length(neutro)*100/(length(neutro)+length(projectionsB)+...
-%     length(monocytes)+length(eosino)))]);
-% disp(['Lymphocytes% ',num2str(length(projectionsB)*100/(length(neutro)+length(projectionsB)+...
-%     length(monocytes)+length(eosino)))]);
-% disp(['Monocytes% ',num2str(length(monocytes)*100/(length(neutro)+length(projectionsB)+...
-%     length(monocytes)+length(eosino)))]);
-% disp(['Eosinophils% ',num2str(length(eosino)*100/(length(neutro)+length(projectionsB)+...
-%     length(monocytes)+length(eosino)))]);
+disp(['Neutrophils% ',num2str(length(neutro)*100/(length(neutro)+length(projectionsB)+...
+    length(monocytes)+length(eosino)))]);
+disp(['Lymphocytes% ',num2str(length(projectionsB)*100/(length(neutro)+length(projectionsB)+...
+    length(monocytes)+length(eosino)))]);
+disp(['Monocytes% ',num2str(length(monocytes)*100/(length(neutro)+length(projectionsB)+...
+    length(monocytes)+length(eosino)))]);
+disp(['Eosinophils% ',num2str(length(eosino)*100/(length(neutro)+length(projectionsB)+...
+    length(monocytes)+length(eosino)))]);
 % disp(['NRBC% ',num2str(length(NRBC)*100/(length(neutro)+length(projectionsB)+...
 %     length(monocytes)+length(eosino)))]);
 % keyboard
@@ -438,3 +438,6 @@ popDynoverall(end+1,:) = [muNoverall,sigmaNoverall,muLoverall,...
     sigmaLoverall,muMoverall,sigmaMoverall,covN(:)',covL(:)',covM(:)'];
 data(end+1,:)=[length(fcsdat),length(neutro)*100/(totWBC),length(remainingMononew)*100/totWBC,...
     length(monocytes)*100/totWBC,length(eosino)*100/totWBC,length(NRBC)*100/totWBC,str2num(filename(end-3:end))];
+cd ('/Users/anweshachaudhury/Desktop/Anwesha research/FCSfiles/WBCresults')
+
+save(filename(end-3:end))
