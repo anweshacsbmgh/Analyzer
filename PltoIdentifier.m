@@ -9,11 +9,15 @@ function data = PltoIdentifier (filename,data)
 close all
 % filename = fnames(12).name;
 addpath('/Users/anweshachaudhury/Desktop/Anwesha research/MATLABfuns/fcs_read')
-cd ('/Users/anweshachaudhury/Desktop/Anwesha research/FCSfiles/allFCS')
+% cd ('/Users/anweshachaudhury/Desktop/Anwesha research/FCSfiles/allFCS')
 
 [FCSData, FCSHdrStd, FCSHdrAbt] = ReadFCS_abbott(filename);
 AbtHdrTbl = struct2table(FCSHdrAbt);
 fcsdat = FCSData(4).RawData;
+if length(fcsdat)<2000
+    data(end+1,:) = zeros(1,24);
+    return
+end
 figure
 plot(fcsdat(:,1),fcsdat(:,2),'.')
 LineReg = lsline;
