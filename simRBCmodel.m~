@@ -3,7 +3,7 @@ clc
 close all
 load ('RETdist.mat')
 %%
-x = [0.05 25 16 2.3 0.025 72]; %set containing [alpha, betaV, betaH, DV, DH, Vc];
+x = [0.08 26 16 2.3 0.025 72]; %set containing [alpha, betaV, betaH, DV, DH, Vc];
 % x = [0.05 26 16 0.014 0.0014 0.8]; %set containing [alpha, betaV, betaH, DV, DH, Vc];
 alpha = x(1);
 betaV = x(2);
@@ -12,62 +12,83 @@ DV = x(4);
 DH = x(5);
 Vc = x(6);
 %%
-MCV = 100; %fl
-MCH = 35; %g/dl
-vGridU = 140/MCV;
-hGridU = 45/MCH;
-vGridL = 5/MCV;
-hGridL = 0.1/MCH;
-nV = 50;
-nH = 50;
+MCV = 90; %fl
+MCH = 30; %g/dl
+vGridU = 140;
+hGridU = 50;
+vGridL = 30;
+hGridL = 10;
+nV = 60;
+nH = 23;
 
 disV = linspace(vGridL,vGridU,nV); %1-D grid in Vol
-disH = linspace(hGridL,hGridU,nH); %1-D grid in Hgb
+disH = linspace(hGridU,hGridL,nH); %1-D grid in Hgb
 [Vgrid,Hgrid]=meshgrid(disV,disH); %Creating a 2-D grid for V and H
+% Hgrid = flipud(Hgrid);
 %%
 P0(:,1) = P0(:,1);
-P0(:,2) = P0(:,2); 
-P0fit = hist3(P0,{disV.*MCV,disH.*MCH});
+P0(:,2) = P0(:,2);
+% P0 = fliplr(P0);
+P0fit = hist3(P0,{disV,fliplr(disH)});
+% P1 = hist3(P0,{disV,fliplr(disH)});
+P0fit = flipud(P0fit)./sum(P0fit(:));
 % Birth
 birth = P0fit;%mvnpdf([Vgrid(:),Hgrid(:)],[1.3,1.2],[30,10]); %this should be the RET distribution
-birth=reshape(birth,length(disV),length(disH));
+birth=reshape(birth,length(disH),length(disV));
 % Death
-VVbar = MCV.*Vgrid;
-HHbar = MCH.*Hgrid;
-theta = atan(MCH/MCV)*ones(length(disV),length(disH))-atan(HHbar./VVbar);
-Delta = 100 * ( cos(theta) .* sqrt(VVbar.^2+HHbar.^2)-Vc.* sqrt(MCH^2.*ones(length(disV),length(disH))+...
-    MCV^2.*ones(length(disV),length(disH))) )./ (sqrt(MCH^2.*ones(length(disV),length(disH))+...
-    MCV^2.*ones(length(disV),length(disH))));
+VVbar = Vgrid.*MCV;
+HHbar = Hgrid.*MCH;
+theta = atan(MCH/MCV)*ones(length(disH),length(disV))-atan(HHbar./VVbar);
+Delta = 100 * ( cos(theta) .* sqrt(VVbar.^2+HHbar.^2)-Vc.* sqrt(MCH^2.*ones(length(disH),length(disV))+...
+    MCV^2.*ones(length(disH),length(disV))) )./ (sqrt(MCH^2.*ones(length(disH),length(disV))+...
+    MCV^2.*ones(length(disH),length(disV))));
 death = 1./(1+exp(Delta)); %zeros(nV,nH);
 % death = -(sign(Delta)-1)/2;
 % Jacobian
-DisMat = -1*eye(length(disV),length(disH));
-dummy = [1*eye(length(disV)-1,length(disH)-1);zeros(1,length(disH)-1)];
-dummy = [zeros(length(disV),1),dummy];
+DisMat = -1*eye(length(disH),length(disV));
+dummy = [1*eye(length(disH)-1,length(disV)-1);zeros(1,length(disV)-1)];
+dummy = [zeros(length(disH),1),dummy];
 J = (DisMat+dummy);%sparse((nV-1)/(vGridU-vGridL)*(DisMat+dummy));
 % JH = ((nH-1)/(hGridU-hGridL)*(DisMat+dummy));%sparse((nH-1)/(hGridU-hGridL)*(DisMat+dummy));
 Po = birth(:);
-fV = alpha.*MCV.*exp(betaV.*(Vgrid-Hgrid));
-fH = alpha.*MCH.*exp(betaH.*(Hgrid-Vgrid));
+fV = alpha.*MCV./50.*exp(betaV.*(Vgrid./MCV-Hgrid./MCH));
+fH = alpha.*MCH./50.*exp(betaH.*(Hgrid./MCH-Vgrid./MCV));
 %Laplacian
 dummy1 = [zeros(1,length(disH)-1);1*eye(length(disV)-1,length(disH)-1)];
 dummy1 = [dummy1,zeros(length(disV),1)];
 % Lv = (DV.*(((nV-1)/(vGridU-vGridL)).^2).*(2*DisMat + dummy1 + dummy));
 % L = (2*DisMat + dummy1 + dummy);
-I = eye(nV,nH);
-E = sparse(2:nV,1:nH-1,1,nV,nH);
-D = E+E'-2*I;
-L1 = kron(D.*DH.*((nH-1)/(hGridU-hGridL)),I)+kron(I,D.*DV.*((nV-1)/(vGridU-vGridL)));
-J1 = kron(J.*(nV-1)./(vGridU-vGridL).*fV,I)+kron(I,J.*(nH-1)./(hGridU-hGridL).*fH);
-
-%Solution using inbuilt MATLAB function
-sol = ode45(@(t,P) RBCfun(t,P,fV,fH,L1,J1,birth,death,nV,nH,vGridU,vGridL,hGridL,hGridU,DH,DV),[0 .5],Po);
+I1 = eye(nV,nV);
+I2 = eye(nH,nH);
+I = eye(nH,nV);
+E = sparse(2:nV,1:nV-1,1,nV,nV);
+Ep = sparse(2:nH,1:nH-1,1,nH,nH);
+D1 = E+E'-2*I1;
+D2 = Ep+Ep'-2*I2;
+L1 = kron(I1,D2.*DH.*((nH-1)/(hGridU-hGridL)).^2)+kron(D1.*DV.*((nV-1)/(vGridU-vGridL)).^2,I2);
+% J1 = kron(I,J'.*(nH-1)./(hGridU-hGridL)).*repmat(fH(:)',[nH.*nV,1])+kron(J.*(nV-1)./(vGridU-vGridL),I').*repmat(fV(:)',[nH.*nV,1]);
+J1 = -1*eye(nH*nV);
+J11 = [eye(nV*nH-1);zeros(1,nV*nH-1)];
+J11 = [zeros(nV*nH,1),J11];
+J11 = J11';
+Jv = (J1+J11).*repmat(fH(:)',[nH.*nV,1]);
+J12 = zeros(nV*nH);
+for i = 1:nH*nV-nV+1
+J12(i,nH+i) = 1;  
+end
+Jh = (J12+J1).*repmat(fV(:)',[nH.*nV,1]);
+J1 = Jv+Jh;
+%Solution using inbuilt MATLAB function 
+options = odeset('AbsTol',1e-6);
+sol = ode15s(@(t,P) RBCfun(t,P,fV,fH,L1,J1,birth,death,nV,nH,vGridU,vGridL,hGridL,hGridU,DH,DV),[0 1200],Po,options);
+%% Plotting
 figure
 for i = 1:numel(sol.y(1,:))
-  P = reshape(sol.y(:,i),nV,nH);
-   surf(disV,disH,P)
+  P = (reshape(sol.y(:,i),nV,nH));
+   contourf(disH,disH,P)
 %    axis tight manual
  axis([vGridL vGridU hGridL hGridU 0 max(max(sol.y))]);
   F(i) = getframe;
+%   keyboard
 end
 % movie(F)

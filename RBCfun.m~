@@ -3,8 +3,10 @@ function dP = RBCfun(t,P,fV,fH,L,J,birth,death,nV,nH,vGridU,vGridL,hGridL,hGridU
 % size((repmat(Lv(:)',[nH.^2,1])*P(:)+repmat(Lh(:)',[nV.^2,1])*P(:)))
 % size(birth(:)-death(:))
 % P=reshape(P,[nV,nH]);
-dP = -(J(:).*(nV-1)/(vGridU-vGridL)*(fV(:).*P(:)) + J'.*(nH-1)/(hGridU-hGridL)*(fH(:).*P(:)))...
-   +L*P(:)+birth(:)-death(:).*(P>0);
+% JD = J';
+% keyboard
+dP = J*P(:)+L*P(:)+birth(:)-death(:).*P(:); su
+% dP1 = -1*(dP<0).*min(abs(dP),P)+dP.*(dP>=0);
 %  dP = -(JV.*(fV.*P) + JH.*(fH.*P))...
 %      +(Lv.*P+Lh.*P)+birth-death.*sign(P);
 %  dP = dP(:);
